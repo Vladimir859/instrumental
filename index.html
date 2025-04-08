@@ -20,7 +20,7 @@
         let draw = false;
         let canv2simbol = [];
 
-        let minx = 555, miny = 555, maxx = 0, maxy = 0;
+        let minx = 1250, miny = 555, maxx = 0, maxy = 0;
 
         let vsegoz = 0;
         let simbols = [];	
@@ -29,6 +29,11 @@
         let aposterior = [];
         let result1 = [];
         let result2 = 0;
+
+        let raznx=0;
+        let pred="";
+        let slovo="";
+
 
 
         window.onload = function() {
@@ -44,7 +49,11 @@
                 x = ev.offsetX;
                 y = ev.offsetY;
 
-                if(minx == 555 && miny == 555 && maxx == 0 && maxy == 0) {
+                if(maxx!=0) {raznx=x-maxx
+                    canvas2.width=10;context2.lineWidth=1;canv2data.innerHTML="";minx=1250;miny=555;maxx=0;maxy=0;pred=add.value;slovo=slovo+pred;
+                }
+
+                if(minx == 1250 && miny == 555 && maxx == 0 && maxy == 0) {
                     minx = x; maxx = x;
                     miny = y; maxy = y;
                 }
@@ -58,7 +67,9 @@
                 if(draw) {
                     x = ev.offsetX;
                     y = ev.offsetY;
-
+                    
+                    if(maxx!=0) {raznx=x-maxx
+                        canv1.style="border:2px double black"} else {canv1.style="border:1px double black"}
                     if(minx > x) minx = x;
                     if(maxx < x) maxx = x;
                     if(miny > y) miny = y;
@@ -90,6 +101,9 @@
             });
 
             document.getElementById('clear').addEventListener('click', function() {
+                slovo = "";
+                pred = "";
+                
                 answer.innerHTML = " ";
                 canvas1.width = canvas1.width;
                 canvas2.width = canvas2.width;
@@ -143,6 +157,14 @@
                 answer.innerHTML=simbols[maxaposteriori]+" ("+(100*maxaposterior).toFixed(2)+"%)";
                 document.getElementById("add").value = simbols[maxaposteriori];
             }
+            if((draw==false) && (slovo!=""))
+            {
+                answer.innerHTML=slovo+add.value;
+                try {diveval.innerHTML=eval(answer.innerHTML)}
+                catch(err) {diveval.innerHTML=answer.innerHTML};
+                answer.innerHTML=diveval.innerHTML;
+            }
+
             apriorrefresh();
             perenos();
         }
@@ -237,12 +259,116 @@
 
         }
 
+        function exparta(){
+            let j=0;
+            let mysavedtext="";
+            let exparray = [];
+
+            for(let i=0;i<=simbols.length-1;i++)
+            {
+            exparray[j]=simbols[i];
+            j=j+1;
+            }
+            exparray[j]="ending1";
+            j=j+1;
+
+            for(let i=0;i<=stat.length-1;i++)
+            {
+                exparray[j]=stat[i];
+                j=j+1;
+            }
+            exparray[j]="ending2";
+            j=j+1;
+
+            for(let i=0;i<=simboldata.length-1;i++)
+            {
+                exparray[j]=simboldata[i];
+                j=j+1;
+            }
+
+            for(let i=0;i<=exparray.length-1;i++)
+            {
+                mysavedtext=mysavedtext+exparray[i]+';';
+            }
+            document.write('<a href="data:text/plain;charset=utf-8,%EF%BB%BF' + encodeURIComponent(mysavedtext) + '" download="array.txt">array.txt</a>');
+        }
+
+        function importa(func) {
+            readFile = function(e) {
+            let file = e.target.files[0];
+            if (!file) {
+            return;
+            }
+            let reader = new FileReader();
+            reader.onload = function(e) {
+            let contents = e.target.result;
+            fileInput.func(contents)
+            document.body.removeChild(fileInput)
+            }
+            reader.readAsText(file)
+            }
+            fileInput = document.createElement("input")
+            fileInput.type='file'
+            fileInput.style.display='none'
+            fileInput.onchange=readFile
+            fileInput.func=func
+            document.body.appendChild(fileInput)
+            clickel(fileInput);
+        }
+
+
+        function clickel(elem) {
+            let eventMouse = document.createEvent("MouseEvents")
+            eventMouse.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+            elem.dispatchEvent(eventMouse)
+        }
+
+
+        function myfile(contents) {
+            let j=1;
+            let k=1;
+            let myarr = contents.split(";");
+            if (confirm("Очистить текущие данные перед импортом?")) {
+                simbols = [];
+                stat = [];
+                simboldata = [];
+                vsegoz = 0;
+                vsego.value = 0;
+            }
+            for(let i=1;i<=myarr.length-1;i++)
+            {
+            simbols[j]=myarr[i];
+            j=j+1;
+            if(myarr[i+1]=="ending1") {i=myarr.length}
+            }
+            for(let i=j+2;i<=myarr.length-1;i++)
+            {
+            stat[k]=1*myarr[i];
+            vsegoz=vsegoz+1*myarr[i];
+            k=k+1;
+            if(myarr[i+1]=="ending2") {i=myarr.length}
+            }
+            k=k+j+1;
+            j=0;
+            for(let i=k+1;i<=myarr.length-1;i++)
+            {
+            simboldata[j]=1*myarr[i];
+            j=j+1;
+            }
+            vsego.value=simbols.length-1;
+            apriorrefresh();
+            toggleExportButton();
+        }
+
+
     </script>
 </head>
 <body>
     <h1><div id="answer"> </div></h1>, 
+    <div id="diveval" style="display:none"></div>
 
-    <canvas id="canv1" style="border: 1px double black;" height="555" width="555"></canvas>
+
+    <canvas id="canv1" style="border: 1px double black;" height="555" width="1250"></canvas>
     <label><input type="checkbox" id="toggle">Скрыть элементы</label>
     <div class="hidden">
         <canvas id="canv2" style="border: 1px solid green;" height="10" width="10"></canvas><br>
@@ -252,10 +378,14 @@
     <div class="hidden" id="canv2data" style="margin-top: 20px; font-family: monospace;"></div>
     <div class="hidden"> 
         <label>Символов в базе</label><input type="text" value="0" id='vsego'><br>
+        <div id="aprior"></div>
     </div>
     <label>Обучить букве/символу</label><input type="text" value="" id="add"><input type="button" value="Записать" onclick="newWrite()">
 
-    <div id="aprior"></div>
+    <br>
+    <div>
+        <input type="button" value="импорт" onclick="importa(myfile)"><input type="button" value="Эскпорт" onclick="exparta()" id="exportBtn" style="display:none;">
+    </div>
 
     <script>
         document.getElementById('toggle').addEventListener('change', function () {
@@ -264,6 +394,16 @@
                 element.style.display = this.checked ? 'none' : 'block';
             });
         });
+
+        // скрипт отображения кнопки
+        document.addEventListener('click', toggleExportButton);
+        document.getElementById('vsego').addEventListener('input', toggleExportButton);
+        function toggleExportButton() {
+            let exportBtn = document.getElementById('exportBtn');
+            exportBtn.style.display = (vsego.value > 0) ? 'inline-block' : 'none';
+        }
+
+
     </script>
 </body>
 </html>
